@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
+<title>Learn Guitar Playable Ad</title>
+<!-- Hybrid SDK MRAID Declaration -->
+<script src="mraid.js"></script>
+<style>
+  :root {
+    --gold: #f5c842;
+    --gold-glow: rgba(245, 200, 66, 0.4);
+    --gold-bright: #ffe699;
+    --dark-bg: #0b0704;
+    --panel-bg: rgba(20, 12, 6, 0.85);
+    --border-color: rgba(245, 200, 66, 0.35);
+    --text-color: #fff;
+    --text-muted: #cbb48e;
+  }
+
+  * { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: radial-gradient(circle at center, #2f1707 0%, #0b0704 100%);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+    color: var(--text-color);
+  }
+
+  /* Floating background elements for aesthetics */
+  .bg-glow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(245, 200, 66, 0.12) 0%, rgba(245,200,66,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    filter: blur(40px);
+  }
+  .bg-glow-1 { top: 10%; left: -50px; }
+  .bg-glow-2 { bottom: 10%; right: -50px; }
+
+  #app-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 16px;
+    z-index: 2;
+    transition: all 0.3s;
+  }
+
+  /* Landscape optimization: Make the app wide and utilize the horizontal space */
+  @media (orientation: landscape) {
+    #app-wrapper {
+      max-width: 950px;
+      padding: 12px 24px;
+    }
+    
+    .header h1 {
+      font-size: 22px !important;
+    }
+    
+    #lyric-display {
+      font-size: 32px !important;
+      min-height: 38px !important;
+    }
+
+    .display-section {
+      margin: 4px 0 !important;
+    }
+
+    .progress-container {
+      margin: 4px 0 !important;
+    }
+
+    #status-msg {
+      margin-top: 4px !important;
+    }
+  }
+
+  /* Header styles */
+  .header {
+    text-align: center;
+    width: 100%;
+  }
+  .header h1 {
+    font-size: clamp(22px, 4vh, 30px);
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px var(--gold-glow);
+    margin-bottom: 2px;
+    background: linear-gradient(135deg, #fffbdf 0%, var(--gold) 60%, #ff8c00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header p {
+    font-size: clamp(11px, 2vh, 14px);
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Displays */
+  .display-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 8px 0;
+    width: 100%;
+  }
+  #lyric-display {
+    font-size: clamp(28px, 6vh, 42px);
+    font-weight: 900;
+    font-family: 'Georgia', serif;
+    color: #fff;
+    min-height: clamp(36px, 7vh, 50px);
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3), 0 2px 10px rgba(0,0,0,0.6);
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  #lyric-display.pop {
+    transform: scale(1.15) rotate(-1deg);
+    color: var(--gold-bright);
+  }
+  #note-display {
+    font-size: clamp(12px, 2.2vh, 15px);
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(245, 200, 66, 0.15);
+    border: 1.5px solid rgba(245, 200, 66, 0.35);
+    padding: 4px 14px;
+    border-radius: 20px;
+    min-height: 24px;
+    text-align: center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+    letter-spacing: 0.5px;
+  }
+
+  /* Progress Bar */
+  .progress-container {
+    width: 100%;
+    margin: 8px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .progress-label-wrap {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  #progress-bar-bg {
+    width: 100%;
+    height: 14px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--border-color);
+    border-radius: 7px;
+    overflow: visible;
+    position: relative;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+  }
+  #progress-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #b026ff 0%, #00f0ff 40%, #39ff14 75%, var(--gold-bright) 100%);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
+    border-radius: 5px;
+    transition: width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+  }
+  #progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: linear-gradient(rgba(255,255,255,0.25), transparent);
+    border-radius: 5px;
+  }
+
+  /* Fretboard wrapper */
+  .fretboard-container {
+    position: relative;
+    width: 100%;
+    perspective: 1000px;
+    margin: 8px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Fretboard */
+  #fretboard {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 348 / 175;
+    background: 
+      linear-gradient(rgba(255, 255, 255, 0.02) 1.5px, transparent 1.5px),
+      linear-gradient(180deg, #130804 0%, #29150a 25%, #3c2010 50%, #29150a 75%, #130804 100%);
+    background-size: 100% 4px, 100% 100%;
+    border-radius: 12px;
+    border: 3.5px solid #63361a;
+    box-shadow: 
+      0 15px 35px rgba(0,0,0,0.7),
+      0 0 30px rgba(99, 54, 26, 0.4),
+      inset 0 1.5px 0 rgba(255,255,255,0.15),
+      inset 0 -1.5px 0 rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+
+  @media (orientation: landscape) {
+    #fretboard {
+      aspect-ratio: 348 / 135; /* Much wider and sleeker in landscape */
+    }
+  }
+
+  /* Fret lines (vertical) */
+  .fret-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(90deg, #3a281a 0%, #c5a468 40%, #fff 55%, #c5a468 70%, #3a281a 100%);
+    box-shadow: 2px 0 4px rgba(0,0,0,0.6);
+  }
+  .fret-line.nut {
+    width: 8px;
+    background: linear-gradient(90deg, #634f3c 0%, #fff5d6 45%, #fff 55%, #dfc394 100%);
+    box-shadow: 3px 0 6px rgba(0,0,0,0.7);
+  }
+
+  /* Fret markers */
+  .fret-marker {
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, #e6d3af 40%, #aa9369 80%, #635235 100%);
+    border: 1.5px solid rgba(0,0,0,0.5);
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.6), 0 3px 6px rgba(0,0,0,0.7);
+    transform: translate(-50%, -50%);
+    top: 50%;
+  }
+
+  /* Fret numbers */
+  .fret-num {
+    position: absolute;
+    bottom: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #cca374;
+    transform: translateX(-50%);
+    text-shadow: 0 1.5px 3px rgba(0,0,0,0.9);
+  }
+
+  /* String lines */
+  .string-line {
+    position: absolute;
+    left: 0; right: 0;
+    box-shadow: 0 1.5px 3px rgba(0,0,0,0.6);
+    pointer-events: none;
+    transition: background-color 0.25s, box-shadow 0.25s, height 0.25s;
+  }
+  /* Vibrating string */
+  .string-line.vibrate {
+    animation: string-vibrate-anim 0.35s ease-in-out;
+  }
+  .string-line.active-string {
+    background: #ffffff !important;
+    box-shadow: 
+      0 0 10px var(--string-glow),
+      0 0 20px var(--string-glow),
+      0 0 35px var(--string-glow);
+  }
+
+  @keyframes string-vibrate-anim {
+    0%, 100% { transform: translateY(0); }
+    15% { transform: translateY(-4px); }
+    30% { transform: translateY(3px); }
+    45% { transform: translateY(-2.5px); }
+    60% { transform: translateY(2px); }
+    75% { transform: translateY(-1px); }
+    90% { transform: translateY(0.5px); }
+  }
+
+  /* String labels on the right */
+  .string-label {
+    position: absolute;
+    right: 10px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #cca374;
+    transform: translateY(-50%);
+    z-index: 5;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  }
+
+  /* Tappable Note Buttons - Sized up for easier mobile playing */
+  .note-btn {
+    position: absolute;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    color: #110802;
+    font-size: 16px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    animation: note-pulse 1.3s infinite ease-in-out;
+    transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  }
+
+  @media (orientation: landscape) {
+    .note-btn {
+      width: 58px; height: 58px;
+      font-size: 18px;
+    }
+  }
+
+  .note-btn:active, .note-btn.pressed {
+    transform: translate(-50%, -50%) scale(0.82);
+    background: radial-gradient(circle, #fff 0%, #fffbdf 45%, var(--note-color) 100%) !important;
+    box-shadow: 0 0 35px #fff, 0 0 20px var(--note-color);
+    animation: none;
+  }
+  .note-btn.correct {
+    background: radial-gradient(circle, #fff 0%, #76ff76 50%, #1ba31b 100%) !important;
+    border-color: #76ff76;
+    box-shadow: 0 0 30px #76ff76;
+    color: #fff;
+  }
+
+  @keyframes note-pulse {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1);
+      box-shadow: 
+        0 0 22px var(--note-color),
+        0 0 38px var(--note-glow),
+        0 4px 10px rgba(0,0,0,0.6);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.2);
+      box-shadow: 
+        0 0 30px var(--note-bright),
+        0 0 60px var(--note-color),
+        0 4px 16px rgba(0,0,0,0.6);
+      border-color: var(--note-bright);
+    }
+  }
+
+  /* Note ripples */
+  .note-ripple {
+    position: absolute;
+    border: 4px solid var(--ripple-color);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: ripple-out 0.65s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    z-index: 9;
+  }
+  @keyframes ripple-out {
+    0% { width: 52px; height: 52px; opacity: 1; border-color: var(--ripple-color); }
+    100% { width: 140px; height: 140px; opacity: 0; border-color: #fff; }
+  }
+
+  /* Particles */
+  .gold-particle {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background: radial-gradient(circle, #fff 10%, var(--p-color) 60%, rgba(255,255,255,0) 100%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 15;
+  }
+
+  /* Tutorial Guide Finger */
+  .tutorial-hand {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    pointer-events: none;
+    z-index: 25;
+    transform: translate(-50%, -120%);
+    animation: bounce-hand 0.9s ease-in-out infinite;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6));
+  }
+  @keyframes bounce-hand {
+    0%, 100% { transform: translate(-50%, -120%) scale(1); }
+    50% { transform: translate(-50%, -85%) scale(0.85); }
+  }
+
+  /* CTA panel / footer */
+  #cta {
+    width: 100%;
+    text-align: center;
+    margin-top: 8px;
+  }
+  #cta-btn {
+    width: 100%;
+    max-width: 420px;
+    padding: 16px;
+    background: linear-gradient(135deg, #ffe082 0%, var(--gold) 45%, #e65100 100%);
+    color: #110802;
+    border: none;
+    border-radius: 35px;
+    font-size: clamp(15px, 3vh, 19px);
+    font-weight: 900;
+    cursor: pointer;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    box-shadow: 
+      0 8px 25px rgba(245, 200, 66, 0.5),
+      0 0 15px var(--gold-glow),
+      inset 0 3px 4px rgba(255,255,255,0.7),
+      inset 0 -3px 4px rgba(0,0,0,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+    animation: cta-pulse-subtle 1.8s infinite ease-in-out;
+    display: inline-block;
+  }
+  #cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 10px 30px rgba(245, 200, 66, 0.7),
+      0 0 20px var(--gold-glow);
+  }
+  #cta-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 5px 12px rgba(245, 200, 66, 0.4);
+  }
+  @keyframes cta-pulse-subtle {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); box-shadow: 0 10px 30px rgba(245, 200, 66, 0.6), 0 0 20px rgba(245,200,66,0.4); }
+  }
+
+  #status-msg {
+    font-size: clamp(11px, 2.2vh, 13px);
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-top: 8px;
+    min-height: 20px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* Splash / Intro Overlay */
+  #splash-screen {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, #351a0b 0%, #070403 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    gap: 36px;
+    padding: 24px;
+    transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .splash-logo {
+    width: 105px;
+    height: 105px;
+    border-radius: 24px;
+    border: 3.5px solid var(--gold);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.7), 0 0 25px var(--gold-glow);
+    object-fit: cover;
+    animation: float-logo 3.5s ease-in-out infinite;
+  }
+  @keyframes float-logo {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .splash-title {
+    font-size: 38px;
+    font-weight: 900;
+    text-align: center;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px var(--gold-glow);
+    background: linear-gradient(135deg, #fff 0%, var(--gold) 50%, #ff8c00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .splash-subtitle {
+    font-size: 16px;
+    color: #f7e4c7;
+    text-align: center;
+    max-width: 300px;
+    line-height: 1.5;
+    margin-top: -16px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.6);
+    font-weight: 500;
+  }
+  .splash-btn {
+    padding: 20px 52px;
+    border: none;
+    border-radius: 45px;
+    background: linear-gradient(135deg, #ffe082 0%, var(--gold) 45%, #ff6f00 100%);
+    color: #110802;
+    font-size: 22px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    box-shadow: 0 12px 30px rgba(245, 200, 66, 0.45), 0 0 20px rgba(245, 200, 66, 0.25);
+    animation: cta-pulse 1.4s infinite ease-in-out;
+  }
+  @keyframes cta-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 12px 30px rgba(245, 200, 66, 0.45); }
+    50% { transform: scale(1.08); box-shadow: 0 15px 38px rgba(245, 200, 66, 0.65), 0 0 30px var(--gold); }
+  }
+
+  /* Completion End Card Overlay */
+  #complete-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(8,5,3,0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    flex-direction: column;
+    padding: 24px;
+  }
+  #complete-overlay.show { display: flex; }
+  
+  #fireworks-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .end-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(35, 22, 14, 0.96) 0%, rgba(15, 9, 5, 0.98) 100%);
+    border: 2px solid var(--border-color);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.85), 0 0 40px rgba(245,200,66,0.25);
+    border-radius: 28px;
+    padding: 36px 28px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    z-index: 2;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+  }
+  #complete-overlay.show .end-card {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  .app-logo-large {
+    width: 85px;
+    height: 85px;
+    border-radius: 20px;
+    border: 2.5px solid var(--gold);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    object-fit: cover;
+  }
+
+  .end-card h2 {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 15px var(--gold-glow);
+    background: linear-gradient(135deg, #fffbdf 0%, var(--gold) 60%, #ff8c00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .end-card p {
+    font-size: 15px;
+    color: #f7e4c7;
+    line-height: 1.6;
+    font-weight: 500;
+  }
+
+  .download-btn {
+    width: 100%;
+    padding: 18px 36px;
+    background: linear-gradient(135deg, #ffe082 0%, var(--gold) 45%, #ff5722 100%);
+    color: #110802;
+    border: none;
+    border-radius: 35px;
+    font-size: 20px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(245, 200, 66, 0.55), inset 0 2.5px 3px rgba(255,255,255,0.6);
+    animation: download-pulse 1.3s infinite ease-in-out;
+  }
+  @keyframes download-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(245, 200, 66, 0.55); }
+    50% { transform: scale(1.06); box-shadow: 0 15px 40px rgba(245, 200, 66, 0.75), 0 0 25px var(--gold); }
+  }
+
+  .play-again-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1.5px solid rgba(203, 180, 142, 0.35);
+    padding: 10px 24px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    transition: all 0.25s;
+  }
+  .play-again-btn:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: rgba(245, 200, 66, 0.08);
+  }
+</style>
+</head>
+<body>
+
+<!-- Glistening Background Glows -->
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<!-- Splash Screen / Intro -->
+<div id="splash-screen">
+  <img class="splash-logo" id="splash-logo" alt="Logo">
+  <div style="text-align: center; display: flex; flex-direction: column; gap: 10px;">
+    <h1 class="splash-title">Learn Guitar</h1>
+    <p class="splash-subtitle">Tap notes on the strings to play your first song in 30 seconds!</p>
+  </div>
+  <button class="splash-btn" onclick="startAd()">▶ Play Now</button>
+</div>
+
+<div id="app-wrapper">
+  <div class="header">
+    <h1>Happy Birthday</h1>
+    <p>Tap the glowing frets to play</p>
+  </div>
+
+  <div class="display-section">
+    <div id="lyric-display">♪</div>
+    <div id="note-display">Press PLAY to start</div>
+  </div>
+
+  <div class="progress-container">
+    <div class="progress-label-wrap">
+      <span>Progress</span>
+      <span id="progress-percent">0%</span>
+    </div>
+    <div id="progress-bar-bg">
+      <div id="progress-bar-fill"></div>
+    </div>
+  </div>
+
+  <div class="fretboard-container">
+    <div id="fretboard"></div>
+  </div>
+
+  <div id="cta">
+    <button id="cta-btn" onclick="handleCtaClick()">Install & Play All Songs</button>
+    <div id="status-msg">25 notes • Standard tuning</div>
+  </div>
+</div>
+
+<!-- End Card Overlay -->
+<div id="complete-overlay">
+  <canvas id="fireworks-canvas"></canvas>
+  <div class="end-card">
+    <img class="app-logo-large" id="endcard-logo" alt="Logo">
+    <h2>🎉 Awesome!</h2>
+    <p>You played <b>Happy Birthday</b> perfectly!<br>Ready to learn chords and full songs?</p>
+    <button class="download-btn" onclick="handleCtaClick()">Tải Ngay / Download</button>
+    <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+  </div>
+</div>
+
+<script>
+/* INSERT_BASE64_ASSETS */
+
+const SONG_DATA = {
+  "note_map": {
+    "G4": { "string": 5, "fret": 3, "wav": "tuned_G4.wav" },
+    "A4": { "string": 5, "fret": 5, "wav": "tuned_A4.wav" },
+    "B4": { "string": 4, "fret": 0, "wav": "tuned_B4.wav" },
+    "C5": { "string": 4, "fret": 1, "wav": "tuned_C5.wav" },
+    "D5": { "string": 4, "fret": 3, "wav": "tuned_D5.wav" },
+    "E5": { "string": 4, "fret": 5, "wav": "tuned_E5.wav" },
+    "F5": { "string": 4, "fret": 6, "wav": "tuned_F5.wav" },
+    "G5": { "string": 4, "fret": 8, "wav": "tuned_G5.wav" }
+  },
+  "sequence": [
+    {"step":1,"note":"G4","string":5,"fret":3,"lyric":"Hap-"},
+    {"step":2,"note":"G4","string":5,"fret":3,"lyric":"py"},
+    {"step":3,"note":"A4","string":5,"fret":5,"lyric":"Birth-"},
+    {"step":4,"note":"G4","string":5,"fret":3,"lyric":"day"},
+    {"step":5,"note":"C5","string":4,"fret":1,"lyric":"to"},
+    {"step":6,"note":"B4","string":4,"fret":0,"lyric":"you"},
+    {"step":7,"note":"G4","string":5,"fret":3,"lyric":"Hap-"},
+    {"step":8,"note":"G4","string":5,"fret":3,"lyric":"py"},
+    {"step":9,"note":"A4","string":5,"fret":5,"lyric":"Birth-"},
+    {"step":10,"note":"G4","string":5,"fret":3,"lyric":"day"},
+    {"step":11,"note":"D5","string":4,"fret":3,"lyric":"to"},
+    {"step":12,"note":"C5","string":4,"fret":1,"lyric":"you"},
+    {"step":13,"note":"G4","string":5,"fret":3,"lyric":"Hap-"},
+    {"step":14,"note":"G4","string":5,"fret":3,"lyric":"py"},
+    {"step":15,"note":"G5","string":4,"fret":8,"lyric":"Birth-"},
+    {"step":16,"note":"E5","string":4,"fret":5,"lyric":"day"},
+    {"step":17,"note":"C5","string":4,"fret":1,"lyric":"dear"},
+    {"step":18,"note":"B4","string":4,"fret":0,"lyric":"friend"},
+    {"step":19,"note":"A4","string":5,"fret":5,"lyric":"~"},
+    {"step":20,"note":"F5","string":4,"fret":6,"lyric":"Hap-"},
+    {"step":21,"note":"F5","string":4,"fret":6,"lyric":"py"},
+    {"step":22,"note":"E5","string":4,"fret":5,"lyric":"Birth-"},
+    {"step":23,"note":"C5","string":4,"fret":1,"lyric":"day"},
+    {"step":24,"note":"D5","string":4,"fret":3,"lyric":"to"},
+    {"step":25,"note":"C5","string":4,"fret":1,"lyric":"you"}
+  ]
+};
+
+// Target Google Play/App Store URL for fallback redirection
+const STORE_URL = "https://play.google.com/store/apps/details?id=com.yousician.yousician";
+
+// Fretboard config matching layout
+const FB_W = 348, FB_H = 200;
+const NUM_STRINGS = 6;
+const FRETS_SHOWN = 9; // fret 0..8
+const NUT_X = 28;
+const FRET_END_X = FB_W - 30;
+const STRING_TOP = 22;
+const STRING_BOT = FB_H - 22;
+const STRING_NAMES = ['E', 'A', 'D', 'G', 'B', 'e'];
+
+// Neon colors for strings
+const STRING_COLORS = [
+  '#ff3b30', // E - Red neon
+  '#ff9500', // A - Orange neon
+  '#ffcc00', // yellow neon
+  '#4cd964', // G - Green neon
+  '#5ac8fa', // B - Cyan neon
+  '#9d00ff'  // e - Purple neon
+];
+
+// Rich custom neon styles for note buttons
+const NOTE_COLORS = {
+  "G4": { color: "#00f0ff", glow: "rgba(0, 240, 255, 0.4)", bright: "#e0ffff" },
+  "A4": { color: "#ff9000", glow: "rgba(255, 144, 0, 0.4)", bright: "#ffe3cc" },
+  "B4": { color: "#39ff14", glow: "rgba(57, 255, 20, 0.4)", bright: "#e6ffcc" },
+  "C5": { color: "#ff007f", glow: "rgba(255, 0, 127, 0.4)", bright: "#ffe0eb" },
+  "D5": { color: "#b026ff", glow: "rgba(176, 38, 255, 0.4)", bright: "#f5e6ff" },
+  "E5": { color: "#ffff00", glow: "rgba(255, 255, 0, 0.4)", bright: "#ffffee" },
+  "F5": { color: "#ff073a", glow: "rgba(255, 7, 58, 0.4)", bright: "#ffe6ea" },
+  "G5": { color: "#1f51ff", glow: "rgba(31, 81, 255, 0.4)", bright: "#e6ecff" }
+};
+
+let audioCtx = null;
+let audioBuffers = {};
+let gameStarted = false;
+let currentStep = 0;
+let totalSteps = SONG_DATA.sequence.length;
+let audioPreloaded = false;
+
+// Initialize Web Audio Context
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+// Convert Base64 string to ArrayBuffer for Web Audio API
+function base64ToArrayBuffer(base64) {
+  const binaryString = window.atob(base64.split(',')[1] || base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+// Preload base64 audio assets
+async function preloadAudio() {
+  if (audioPreloaded) return;
+  const ctx = getAudioCtx();
+  const notes = Object.keys(window.AUDIO_ASSETS);
+  for (const n of notes) {
+    try {
+      const b64Data = window.AUDIO_ASSETS[n];
+      if (b64Data) {
+        const arrayBuf = base64ToArrayBuffer(b64Data);
+        audioBuffers[n] = await ctx.decodeAudioData(arrayBuf);
+      }
+    } catch(e) {
+      console.error("Audio preload failed for " + n, e);
+    }
+  }
+  audioPreloaded = true;
+}
+
+// Play Synth sound as fallback if loading fails
+function playSynth(freq) {
+  const ctx = getAudioCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  
+  filter.type = 'lowpass';
+  filter.frequency.value = freq * 2.5;
+  filter.Q.value = 1;
+  
+  osc.type = 'triangle';
+  osc.frequency.value = freq;
+  
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  
+  gain.gain.setValueAtTime(0.5, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+  
+  osc.start();
+  osc.stop(ctx.currentTime + 1.2);
+}
+
+const NOTE_FREQS = {
+  G4: 392.00, A4: 440.00, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99
+};
+
+function playNote(noteName) {
+  const ctx = getAudioCtx();
+  if (audioBuffers[noteName]) {
+    const src = ctx.createBufferSource();
+    src.buffer = audioBuffers[noteName];
+    const gain = ctx.createGain();
+    
+    gain.gain.setValueAtTime(0.9, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.0);
+    
+    src.connect(gain);
+    gain.connect(ctx.destination);
+    src.start();
+  } else {
+    playSynth(NOTE_FREQS[noteName] || 440.00);
+  }
+}
+
+// Responsive percentage calculation functions
+function getFretXPct(fret) {
+  const NUT_PCT = (NUT_X / FB_W) * 100;
+  const FRET_W_PCT = ((FRET_END_X - NUT_X) / FRETS_SHOWN / FB_W) * 100;
+  if (fret === 0) return NUT_PCT;
+  return NUT_PCT + (fret - 0.5) * FRET_W_PCT;
+}
+
+function getStringYPct(stringIndex) {
+  const TOP_PCT = (STRING_TOP / FB_H) * 100;
+  const BOT_PCT = (STRING_BOT / FB_H) * 100;
+  return TOP_PCT + (stringIndex / (NUM_STRINGS - 1)) * (BOT_PCT - TOP_PCT);
+}
+
+// Build fretboard dynamically using percentage styles
+function buildFretboard() {
+  const fb = document.getElementById('fretboard');
+  fb.innerHTML = '';
+
+  // Draw fret lines
+  for (let f = 0; f <= FRETS_SHOWN; f++) {
+    const el = document.createElement('div');
+    el.className = 'fret-line' + (f === 0 ? ' nut' : '');
+    el.style.left = getFretXPct(f) + '%';
+    fb.appendChild(el);
+  }
+
+  // Draw markers at 3, 5, 7
+  [3, 5, 7].forEach(f => {
+    const el = document.createElement('div');
+    el.className = 'fret-marker';
+    el.style.left = getFretXPct(f) + '%';
+    fb.appendChild(el);
+  });
+
+  // Draw fret numbers
+  for (let f = 1; f <= FRETS_SHOWN; f++) {
+    const el = document.createElement('div');
+    el.className = 'fret-num';
+    el.textContent = f;
+    el.style.left = getFretXPct(f) + '%';
+    fb.appendChild(el);
+  }
+
+  // Draw strings
+  for (let s = 0; s < NUM_STRINGS; s++) {
+    const yPct = getStringYPct(s);
+    const el = document.createElement('div');
+    el.className = 'string-line';
+    el.id = 'string-' + s;
+    el.style.top = yPct + '%';
+    el.style.backgroundColor = STRING_COLORS[s] + 'cc'; // semi transparent base
+    el.style.height = (2.5 + s * 0.4) + 'px'; // lower strings are thicker
+    fb.appendChild(el);
+
+    // Label
+    const lbl = document.createElement('div');
+    lbl.className = 'string-label';
+    lbl.textContent = STRING_NAMES[s];
+    lbl.style.top = yPct + '%';
+    fb.appendChild(lbl);
+  }
+}
+
+// Visual sparkles/star particles on correct note hits
+function spawnParticles(x, y, pColor) {
+  const fb = document.getElementById('fretboard');
+  const numParticles = 14;
+  
+  // Calculate relative coordinates in percentage for responsiveness
+  const rect = fb.getBoundingClientRect();
+  const leftPct = (x / rect.width) * 100;
+  const topPct = (y / rect.height) * 100;
+
+  for (let i = 0; i < numParticles; i++) {
+    const p = document.createElement('div');
+    p.className = 'gold-particle';
+    p.style.setProperty('--p-color', pColor);
+    p.style.left = leftPct + '%';
+    p.style.top = topPct + '%';
+    
+    // Spread physics
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2.0 + Math.random() * 4.5;
+    const vx = Math.cos(angle) * speed;
+    const vy = Math.sin(angle) * speed - 1.5;
+    
+    fb.appendChild(p);
+
+    let px = 0;
+    let py = 0;
+    const startTime = Date.now();
+    const duration = 500 + Math.random() * 400;
+
+    function anim() {
+      const elapsed = Date.now() - startTime;
+      if (elapsed > duration) {
+        p.remove();
+        return;
+      }
+      const pct = elapsed / duration;
+      px += vx;
+      py += vy;
+      p.style.transform = `translate(-50%, -50%) translate(${px}px, ${py}px) scale(${1 - pct * 0.5})`;
+      p.style.opacity = 1 - pct;
+      requestAnimationFrame(anim);
+    }
+    requestAnimationFrame(anim);
+  }
+}
+
+// Display target note and update guide pointer
+function showNoteButton(step) {
+  const oldBtn = document.getElementById('note-btn');
+  if (oldBtn) oldBtn.remove();
+  const oldHand = document.getElementById('tutorial-hand');
+  if (oldHand) oldHand.remove();
+
+  const seq = SONG_DATA.sequence[step];
+  if (!seq) return;
+
+  const xPct = getFretXPct(seq.fret);
+  const yPct = getStringYPct(seq.string);
+
+  // Setup styling of note
+  const nColors = NOTE_COLORS[seq.note] || { color: "#f5c842", glow: "rgba(245, 200, 66, 0.4)", bright: "#ffe699" };
+
+  // Note Button
+  const btn = document.createElement('div');
+  btn.className = 'note-btn';
+  btn.id = 'note-btn';
+  btn.textContent = seq.note;
+  btn.style.left = xPct + '%';
+  btn.style.top = yPct + '%';
+  
+  // Set custom colors for CSS animations
+  btn.style.setProperty('--note-color', nColors.color);
+  btn.style.setProperty('--note-glow', nColors.glow);
+  btn.style.setProperty('--note-bright', nColors.bright);
+  btn.style.background = `radial-gradient(circle, #fff 0%, ${nColors.bright} 25%, ${nColors.color} 75%, rgba(0,0,0,0.5) 100%)`;
+  btn.style.borderColor = nColors.color;
+
+  // Highlight target string and trigger color glows
+  for (let s = 0; s < NUM_STRINGS; s++) {
+    const el = document.getElementById('string-' + s);
+    if (el) {
+      const isActive = (s === seq.string);
+      el.classList.toggle('active-string', isActive);
+      if (isActive) {
+        el.style.setProperty('--string-glow', STRING_COLORS[s]);
+      }
+    }
+  }
+
+  // Pointer Hand for tutorial (first step)
+  if (step === 0) {
+    const hand = document.createElement('div');
+    hand.className = 'tutorial-hand';
+    hand.id = 'tutorial-hand';
+    // Pointer Finger SVG
+    hand.innerHTML = `
+      <svg viewBox="0 0 512 512" fill="${nColors.bright}" width="100%" height="100%">
+        <path d="M439.9 285.8c-10.2-10.2-26.7-10.2-36.9 0L352 336.8V136c0-26.5-21.5-48-48-48s-48 21.5-48 48v200.8l-51.1-51.1c-10.2-10.2-26.7-10.2-36.9 0-10.2 10.2-10.2 26.7 0 36.9l121 121c24 24 56.6 37.4 90.5 37.4H384c53 0 96-43 96-96v-53.1c.1-13.8-5.3-27-14.1-36.9zM224 168c0-13.3-10.7-24-24-24s-24 10.7-24 24v176h-16c-13.3 0-24 10.7-24 24s10.7 24 24 24h40V168zm-96-32c0-13.3-10.7-24-24-24S80 122.7 80 136v208H64c-13.3 0-24 10.7-24 24s10.7 24 24 24h40V136z" opacity="0.35"/>
+        <path d="M304 136v136.8l-40.8-40.8c-7.8-7.8-20.5-7.8-28.3 0-7.8 7.8-7.8 20.5 0 28.3l104 104c8.4 8.4 19.8 13.2 31.7 13.2H384c44.2 0 80-35.8 80-80v-40.8c0-10.6-4.2-20.8-11.7-28.3-7.8-7.8-20.5-7.8-28.3 0L384 308.8V136c0-17.7-14.3-32-32-32s-32 14.3-32 32z"/>
+      </svg>
+    `;
+    hand.style.left = xPct + '%';
+    hand.style.top = yPct + '%';
+    document.getElementById('fretboard').appendChild(hand);
+  }
+
+  // Pointer event support for dual inputs (mouse + touch)
+  btn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    onNotePressed(seq, btn);
+  });
+
+  document.getElementById('fretboard').appendChild(btn);
+
+  // Update Lyric displays with pop animation
+  const lyricEl = document.getElementById('lyric-display');
+  lyricEl.textContent = seq.lyric;
+  lyricEl.classList.remove('pop');
+  void lyricEl.offsetWidth; // trigger reflow
+  lyricEl.classList.add('pop');
+
+  document.getElementById('note-display').textContent = seq.note + ' — String ' + (seq.string + 1) + (seq.fret === 0 ? ' (Open String)' : ', Fret ' + seq.fret);
+}
+
+// User successfully pressed correct note
+function onNotePressed(seq, btn) {
+  // Hide pointer finger if visible
+  const hand = document.getElementById('tutorial-hand');
+  if (hand) hand.remove();
+
+  // Play Sound
+  playNote(seq.note);
+
+  // Physical String Vibration animation
+  const stringEl = document.getElementById('string-' + seq.string);
+  if (stringEl) {
+    stringEl.classList.remove('vibrate');
+    void stringEl.offsetWidth; // trigger reflow
+    stringEl.classList.add('vibrate');
+  }
+
+  // Get note-specific colors
+  const nColors = NOTE_COLORS[seq.note] || { color: "#f5c842" };
+
+  // Calculate note center on fretboard for particles/ripples
+  const fb = document.getElementById('fretboard');
+  const fbRect = fb.getBoundingClientRect();
+  const noteX = (getFretXPct(seq.fret) / 100) * fbRect.width;
+  const noteY = (getStringYPct(seq.string) / 100) * fbRect.height;
+
+  // Spawn visual elements
+  spawnParticles(noteX, noteY, nColors.color);
+
+  const ripple = document.createElement('div');
+  ripple.className = 'note-ripple';
+  ripple.style.setProperty('--ripple-color', nColors.color);
+  ripple.style.left = getFretXPct(seq.fret) + '%';
+  ripple.style.top = getStringYPct(seq.string) + '%';
+  fb.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 650);
+
+  // Feedback states
+  btn.classList.add('pressed');
+  setTimeout(() => btn.classList.add('correct'), 50);
+
+  currentStep++;
+
+  // Update Progress Bar
+  const progressPct = Math.round((currentStep / totalSteps) * 100);
+  document.getElementById('progress-bar-fill').style.width = progressPct + '%';
+  document.getElementById('progress-percent').textContent = progressPct + '%';
+
+  if (currentStep >= totalSteps) {
+    setTimeout(() => {
+      endGame();
+    }, 500);
+    return;
+  }
+
+  // Next note
+  setTimeout(() => {
+    showNoteButton(currentStep);
+  }, 220);
+}
+
+// Start interactive game flow
+function startGame() {
+  if (gameStarted) return;
+  gameStarted = true;
+  currentStep = 0;
+
+  document.getElementById('progress-bar-fill').style.width = '0%';
+  document.getElementById('progress-percent').textContent = '0%';
+  document.getElementById('status-msg').textContent = 'Follow the glowing rings!';
+
+  showNoteButton(0);
+}
+
+// Preload & transition on start button click
+async function startAd() {
+  const loader = document.getElementById('splash-screen');
+  
+  // Unlock Audio Context
+  const ctx = getAudioCtx();
+  if (ctx.state === 'suspended') {
+    await ctx.resume();
+  }
+
+  // Report Game Started to SDK
+  if (typeof window.gameStart === 'function') {
+    window.gameStart();
+  }
+
+  // Preload and Start
+  await preloadAudio();
+  
+  loader.style.opacity = '0';
+  setTimeout(() => {
+    loader.style.display = 'none';
+    startGame();
+  }, 400);
+}
+
+// Handle end game states
+function endGame() {
+  // Show Completion Overlay
+  document.getElementById('complete-overlay').classList.add('show');
+  
+  // Report Game Over to SDK
+  reportGameEnd();
+
+  // Start Canvas Fireworks
+  startFireworks();
+}
+
+// Clear game states to restart
+function resetGame() {
+  document.getElementById('complete-overlay').classList.remove('show');
+  stopFireworks();
+
+  gameStarted = false;
+  currentStep = 0;
+
+  const oldBtn = document.getElementById('note-btn');
+  if (oldBtn) oldBtn.remove();
+  const oldHand = document.getElementById('tutorial-hand');
+  if (oldHand) oldHand.remove();
+
+  for (let s = 0; s < NUM_STRINGS; s++) {
+    const el = document.getElementById('string-' + s);
+    if (el) {
+      el.classList.remove('active-string');
+      el.classList.remove('vibrate');
+    }
+  }
+
+  document.getElementById('lyric-display').textContent = '♪';
+  document.getElementById('note-display').textContent = 'Tap to play!';
+  document.getElementById('progress-bar-fill').style.width = '0%';
+  document.getElementById('progress-percent').textContent = '0%';
+  document.getElementById('status-msg').textContent = '25 notes • Standard tuning';
+
+  startGame();
+}
+
+// Hybrid SDK integration for CTA button clicks
+function handleCtaClick() {
+  console.log("CTA Button Clicked");
+  if (typeof window.install === 'function') {
+    window.install();
+  } else if (typeof mraid !== 'undefined' && typeof mraid.open === 'function') {
+    mraid.open(STORE_URL);
+  } else {
+    window.open(STORE_URL, '_blank');
+  }
+}
+
+// SDK commands to handle music/app state
+window.gameStart = function() {
+  console.log("SDK: gameStart callback triggered");
+  const ctx = getAudioCtx();
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume();
+  }
+};
+
+window.gameClose = function() {
+  console.log("SDK: gameClose callback triggered");
+  const ctx = getAudioCtx();
+  if (ctx && ctx.state === 'running') {
+    ctx.suspend();
+  }
+};
+
+// Canvas Fireworks implementation
+let fwCanvas = null;
+let fwCtx = null;
+let fwAnimationId = null;
+let fireworks = [];
+let fwParticles = [];
+
+class Firework {
+  constructor(sx, sy, tx, ty) {
+    this.x = sx;
+    this.y = sy;
+    this.sx = sx;
+    this.sy = sy;
+    this.tx = tx;
+    this.ty = ty;
+    this.distanceToTarget = Math.hypot(tx - sx, ty - sy);
+    this.distanceTraveled = 0;
+    this.coordinates = [];
+    this.coordinateCount = 3;
+    while(this.coordinateCount--) {
+      this.coordinates.push([this.x, this.y]);
+    }
+    this.angle = Math.atan2(ty - sy, tx - sx);
+    this.speed = 2;
+    this.acceleration = 1.05;
+    this.brightness = Math.random() * 20 + 55;
+    this.hue = Math.random() * 360;
+  }
+
+  update(index) {
+    this.coordinates.pop();
+    this.coordinates.unshift([this.x, this.y]);
+    this.speed *= this.acceleration;
+    const vx = Math.cos(this.angle) * this.speed;
+    const vy = Math.sin(this.angle) * this.speed;
+    this.distanceTraveled = Math.hypot(this.x + vx - this.sx, this.y + vy - this.sy);
+
+    if (this.distanceTraveled >= this.distanceToTarget) {
+      createExplosion(this.tx, this.ty, this.hue);
+      fireworks.splice(index, 1);
+    } else {
+      this.x += vx;
+      this.y += vy;
+    }
+  }
+
+  draw() {
+    fwCtx.beginPath();
+    fwCtx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+    fwCtx.lineTo(this.x, this.y);
+    fwCtx.strokeStyle = `hsl(${this.hue}, 100%, ${this.brightness}%)`;
+    fwCtx.lineWidth = 2.5;
+    fwCtx.stroke();
+  }
+}
+
+class Particle {
+  constructor(x, y, hue) {
+    this.x = x;
+    this.y = y;
+    this.coordinates = [];
+    this.coordinateCount = 5;
+    while(this.coordinateCount--) {
+      this.coordinates.push([this.x, this.y]);
+    }
+    this.angle = Math.random() * Math.PI * 2;
+    this.speed = Math.random() * 6 + 1.5;
+    this.hue = hue + (Math.random() * 40 - 20);
+    this.brightness = Math.random() * 30 + 55;
+    this.alpha = 1;
+    this.decay = Math.random() * 0.015 + 0.015;
+    this.gravity = 0.07;
+  }
+
+  update(index) {
+    this.coordinates.pop();
+    this.coordinates.unshift([this.x, this.y]);
+    this.speed *= 0.94;
+    this.x += Math.cos(this.angle) * this.speed;
+    this.y += Math.sin(this.angle) * this.speed + this.gravity;
+    this.alpha -= this.decay;
+
+    if (this.alpha <= this.decay) {
+      fwParticles.splice(index, 1);
+    }
+  }
+
+  draw() {
+    fwCtx.beginPath();
+    fwCtx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+    fwCtx.lineTo(this.x, this.y);
+    fwCtx.strokeStyle = `hsla(${this.hue}, 100%, ${this.brightness}%, ${this.alpha})`;
+    fwCtx.lineWidth = 2;
+    fwCtx.stroke();
+  }
+}
+
+function createExplosion(x, y, hue) {
+  let particleCount = 50;
+  while(particleCount--) {
+    fwParticles.push(new Particle(x, y, hue));
+  }
+}
+
+function startFireworks() {
+  fwCanvas = document.getElementById('fireworks-canvas');
+  fwCtx = fwCanvas.getContext('2d');
+  
+  function resize() {
+    fwCanvas.width = window.innerWidth;
+    fwCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  fireworks = [];
+  fwParticles = [];
+  
+  let timerTick = 0;
+
+  function loop() {
+    fwAnimationId = requestAnimationFrame(loop);
+    fwCtx.globalCompositeOperation = 'destination-out';
+    fwCtx.fillStyle = 'rgba(8, 5, 3, 0.25)';
+    fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
+    
+    fwCtx.globalCompositeOperation = 'lighter';
+    
+    let i = fireworks.length;
+    while(i--) {
+      fireworks[i].draw();
+      fireworks[i].update(i);
+    }
+    
+    let j = fwParticles.length;
+    while(j--) {
+      fwParticles[j].draw();
+      fwParticles[j].update(j);
+    }
+
+    timerTick++;
+    if (timerTick >= 28) {
+      const sx = fwCanvas.width / 2 + (Math.random() * 200 - 100);
+      const sy = fwCanvas.height;
+      const tx = Math.random() * fwCanvas.width;
+      const ty = Math.random() * (fwCanvas.height * 0.6);
+      fireworks.push(new Firework(sx, sy, tx, ty));
+      timerTick = 0;
+    }
+  }
+  loop();
+}
+
+function stopFireworks() {
+  if (fwAnimationId) {
+    cancelAnimationFrame(fwAnimationId);
+    fwAnimationId = null;
+  }
+}
+
+// Initialise App DOM & Assets
+buildFretboard();
+
+// Apply logo asset and ready state reports
+document.addEventListener("DOMContentLoaded", () => {
+  const logo = window.LOGO_ASSET || "";
+  document.getElementById('splash-logo').src = logo;
+  document.getElementById('endcard-logo').src = logo;
+  
+  // Notify SDK Game is ready for insertion
+  reportGameReady();
+});
+
+// Fallback in case DOMContentLoaded already fired
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  const logo = window.LOGO_ASSET || "";
+  document.getElementById('splash-logo').src = logo;
+  document.getElementById('endcard-logo').src = logo;
+  reportGameReady();
+}
+
+// Game ready and game end notifications
+function reportGameReady() {
+  console.log("Game Ready reported");
+  if (typeof window.gameReady === 'function') {
+    window.gameReady();
+  }
+}
+
+function reportGameEnd() {
+  console.log("Game End reported");
+  if (typeof window.gameEnd === 'function') {
+    window.gameEnd();
+  }
+}
+</script>
+</body>
+</html>
